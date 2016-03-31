@@ -1,0 +1,77 @@
+DELETE kuromoji_sample
+
+PUT kuromoji_sample
+{
+  "settings": {
+    "index": {
+      "analysis": {
+        "tokenizer": {
+          "ja_tokenizer": {
+            "type": "kuromoji_tokenizer",
+            "mode": "search"
+          }
+        },
+        "analzyer": {
+          "ja": {
+            "type": "custom",
+            "tokenizer": "ja_tokenizer"
+          }
+        }
+      }
+    }
+  }
+}
+
+PUT kuromoji_sample
+{
+  "settings": {
+    "index": {
+      "analysis": {
+        "analyzer": {
+          "my_analyzer": {
+            "tokenizer": "kuromoji_tokenizer",
+            "filter": [
+              "stop_posfilter"
+            ]
+          }
+        },
+        "filter": {
+          "stop_posfilter": {
+            "type": "kuromoji_part_of_speech",
+            "stoptags": [
+              "助詞-格助詞-一般",
+              "助詞-終助詞"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+
+GET kuromoji_sample/_settings
+
+GET kuromoji_sample/_analyze?analyzer=my_analyzer
+{
+  "text": "寿司がおいしいね"
+}
+
+POST kuromoji_sample/document
+{
+  "text": "寿司が美味しいね"
+}
+
+GET kuromoji_sample/_analyze?analyzer=my_analyzer
+{
+  "text": "料理が"
+}
+
+GET kuromoji_sample/document/_search
+{
+  "query": {
+    "simple_query_string": {
+      "query": "料理が",
+      "fields": ["text"]
+    }
+  }
+}

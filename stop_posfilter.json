@@ -1,34 +1,20 @@
+# インデックス削除
 DELETE kuromoji_sample
 
-PUT kuromoji_sample
-{
-  "settings": {
-    "index": {
-      "analysis": {
-        "tokenizer": {
-          "ja_tokenizer": {
-            "type": "kuromoji_tokenizer",
-            "mode": "search"
-          }
-        },
-        "analzyer": {
-          "ja": {
-            "type": "custom",
-            "tokenizer": "ja_tokenizer"
-          }
-        }
-      }
-    }
-  }
-}
-
+# トークナイザーにkuromojiを指定
+# ただし、検索時は助詞を除外
 PUT kuromoji_sample
 {
   "settings": {
     "index": {
       "analysis": {
         "analyzer": {
-          "my_analyzer": {
+          "default_index": {
+            "type": "custom",
+            "tokenizer": "kuromoji_tokenizer"
+          },
+          "default_search": {
+            "type": "custom",
             "tokenizer": "kuromoji_tokenizer",
             "filter": [
               "stop_posfilter"
@@ -49,29 +35,51 @@ PUT kuromoji_sample
   }
 }
 
+# 設定を確認
 GET kuromoji_sample/_settings
 
-GET kuromoji_sample/_analyze?analyzer=my_analyzer
+# サンプルの形態素解析の結果を確認
+GET kuromoji_sample/_analyze?explain
 {
-  "text": "寿司がおいしいね"
+  "text": "寿司が美味しいね"
 }
 
+# データを保存
 POST kuromoji_sample/document
 {
   "text": "寿司が美味しいね"
 }
 
-GET kuromoji_sample/_analyze?analyzer=my_analyzer
-{
-  "text": "料理が"
-}
-
+# 検索してみる、結果は０
 GET kuromoji_sample/document/_search
 {
   "query": {
     "simple_query_string": {
-      "query": "料理が",
+      "query": "料理がうまいね",
       "fields": ["text"]
     }
   }
+}
+
+# クエリの助詞が除外されているのがわかる
+GET kuromoji_sample/_analyze?explain
+{
+  "text": "料理がうまいね"
+}
+
+# 「が」だけなのにヒットしてしまう
+GET kuromoji_sample/document/_search
+{
+  "query": {
+    "simple_query_string": {
+      "query": "が",
+      "fields": ["text"]
+    }
+  }
+}
+
+# 「が」が接続詞に分類されているのがわかる
+GET kuromoji_sample/_analyze?explain
+{
+  "text": "が"
 }

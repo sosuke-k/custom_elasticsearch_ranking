@@ -1,0 +1,70 @@
+# https://github.com/elastic/elasticsearch/issues/3114
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-termvectors.html
+
+# インデックス削除
+DELETE twitter
+
+# マッピングの設定
+POST twitter
+{
+  "mappings": {
+    "tweet": {
+      "properties": {
+        "text": {
+          "type": "string",
+          "term_vector": "with_positions_offsets_payloads",
+          "store" : "yes",
+          "analyzer" : "fulltext_analyzer"
+        },
+        "fullname": {
+          "type": "string",
+          "term_vector": "with_positions_offsets_payloads",
+          "analyzer" : "fulltext_analyzer"
+        }
+      }
+    }
+  },
+  "settings" : {
+    "index" : {
+      "number_of_shards" : 1,
+      "number_of_replicas" : 0
+    },
+    "analysis": {
+      "analyzer": {
+        "fulltext_analyzer": {
+          "type": "custom",
+          "tokenizer": "whitespace",
+          "filter": [
+            "lowercase",
+            "type_as_payload"
+          ]
+        }
+      }
+    }
+  }
+}
+
+# サンプルツイート１を追加
+PUT twitter/tweet/1
+{
+  "fullname" : "John Doe",
+  "text" : "twitter test test test "
+}
+
+# サンプルツイート２を追加
+PUT twitter/tweet/2
+{
+  "fullname" : "Jane Doe",
+  "text" : "Another twitter test ..."
+}
+
+# 単語統計情報を取得
+POST twitter/tweet/2/_termvectors
+{
+  "fields" : ["text"],
+  "offsets" : true,
+  "payloads" : true,
+  "positions" : true,
+  "term_statistics" : true,
+  "field_statistics" : true
+}

@@ -74,6 +74,38 @@ GET twitter/tweet/_search
   "query": { "match_all": {} }
 }
 
+GET twitter/tweet/_search
+{
+  "query" : {
+    "function_score" : {
+      "query" : {
+        "simple_query_string" : {
+          "query": "test",
+          "fields": ["text"]
+        }
+      }
+    }
+  }
+}
+
+GET twitter/tweet/_search
+{
+  "query" : {
+    "function_score" : {
+      "query" : {
+        "simple_query_string" : {
+          "query": "test",
+          "fields": ["text"]
+        }
+      },
+      "boost_mode": "replace",
+      "script_score" : {
+        "script" : "_score * 3.0"
+      }
+    }
+  }
+}
+
 GET twitter/tweet/_search?explain
 {
   "query" : {

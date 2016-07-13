@@ -1,0 +1,61 @@
+# https://www.elastic.co/guide/en/elasticsearch/guide/current/using-synonyms.html
+
+DELETE /my_index
+
+PUT /my_index
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "my_synonym_filter": {
+          "type": "synonym",
+          "synonyms": [
+            "british,english",
+            "queen,monarch"
+          ]
+        }
+      },
+      "analyzer": {
+        "my_synonyms": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "my_synonym_filter"
+          ]
+        }
+      }
+    }
+  }
+}
+
+PUT /my_index/profile/1
+{
+  "country": "british"
+}
+
+PUT /my_index/profile/2
+{
+  "country": "english"
+}
+
+GET /my_index/profile/_search
+{
+  "query": {
+    "simple_query_string" : {
+      "query": "british",
+      "analyzer": "my_synonyms",
+      "fields": ["country"]
+    }
+  }
+}
+
+
+GET /my_index/profile/1/_termvectors
+{
+  "fields" : ["country"],
+  "offsets" : false,
+  "payloads" : false,
+  "positions" : false,
+  "term_statistics" : true,
+  "field_statistics" : false
+}

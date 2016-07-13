@@ -1,0 +1,39 @@
+GET _search
+{
+  "query": { "match_all": {} }
+}
+
+GET _aliases
+
+PUT /my_index
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "custom_stem": {
+          "type": "stemmer_override",
+          "rules": [
+            "skies=>sky",
+            "mice=>mouse",
+            "feet=>foot"
+          ]
+        }
+      },
+      "analyzer": {
+        "my_english": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "custom_stem",
+            "porter_stem"
+          ]
+        }
+      }
+    }
+  }
+}
+
+GET /my_index/_analyze?analyzer=my_english
+{
+  "text": "I skies. I am in the sky"
+}

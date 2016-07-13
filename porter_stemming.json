@@ -1,39 +1,101 @@
-GET _search
-{
-  "query": { "match_all": {} }
-}
+DELETE /my_index2
 
-GET _aliases
-
-PUT /my_index
+PUT /my_index2
 {
   "settings": {
-    "analysis": {
-      "filter": {
-        "custom_stem": {
-          "type": "stemmer_override",
-          "rules": [
-            "skies=>sky",
-            "mice=>mouse",
-            "feet=>foot"
-          ]
-        }
-      },
-      "analyzer": {
-        "my_english": {
-          "tokenizer": "standard",
-          "filter": [
-            "lowercase",
-            "custom_stem",
-            "porter_stem"
-          ]
+    "index": {
+      "analysis": {
+        "analyzer": {
+          "default_index": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": [
+              "lowercase",
+              "porter_stem"
+            ]
+          },
+          "default_search": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": [
+              "lowercase",
+              "porter_stem"
+            ]
+          }
         }
       }
     }
   }
 }
 
-GET /my_index/_analyze?analyzer=my_english
+GET /my_index2/tweet/1
 {
   "text": "I skies. I am in the sky"
+}
+
+GET /my_index2/tweet/1/_termvectors
+{
+  "fields" : ["text"],
+  "offsets" : false,
+  "payloads" : false,
+  "positions" : false,
+  "term_statistics" : true,
+  "field_statistics" : false
+}
+
+DELETE /my_index
+
+PUT /my_index
+{
+  "settings": {
+    "index": {
+      "analysis": {
+        "filter": {
+          "custom_stem": {
+            "type": "stemmer_override",
+            "rules": [
+              "skies=>sky",
+              "mice=>mouse",
+              "feet=>foot"
+            ]
+          }
+        },
+        "analyzer": {
+          "default_index": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": [
+              "lowercase",
+              "custom_stem",
+              "porter_stem"
+            ]
+          },
+          "default_search": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": [
+              "lowercase",
+              "custom_stem",
+              "porter_stem"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+
+GET /my_index/tweet/1
+{
+  "text": "I skies. I am in the sky"
+}
+
+GET /my_index/tweet/1/_termvectors
+{
+  "fields" : ["text"],
+  "offsets" : false,
+  "payloads" : false,
+  "positions" : false,
+  "term_statistics" : true,
+  "field_statistics" : false
 }

@@ -5,23 +5,34 @@ DELETE /my_index
 PUT /my_index
 {
   "settings": {
-    "analysis": {
-      "filter": {
-        "my_synonym_filter": {
-          "type": "synonym",
-          "synonyms": [
-            "british,english",
-            "queen,monarch"
-          ]
-        }
-      },
-      "analyzer": {
-        "my_synonyms": {
-          "tokenizer": "standard",
-          "filter": [
-            "lowercase",
-            "my_synonym_filter"
-          ]
+    "index": {
+      "analysis": {
+        "filter": {
+          "my_synonym_filter": {
+            "type": "synonym",
+            "synonyms": [
+              "british,english",
+              "queen,monarch"
+            ]
+          }
+        },
+        "analyzer": {
+          "default_index": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": [
+              "lowercase",
+              "my_synonym_filter"
+            ]
+          },
+          "default_search": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": [
+              "lowercase",
+              "my_synonym_filter"
+            ]
+          }
         }
       }
     }
@@ -43,7 +54,6 @@ GET /my_index/profile/_search
   "query": {
     "simple_query_string" : {
       "query": "british",
-      "analyzer": "my_synonyms",
       "fields": ["country"]
     }
   }
